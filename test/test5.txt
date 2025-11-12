@@ -1,0 +1,6 @@
+begin
+x = inputExpr()
+y = 5
+sinkExpr(y)
+end
+

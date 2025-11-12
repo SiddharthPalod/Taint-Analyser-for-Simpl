@@ -1,0 +1,170 @@
+// Taint Analysis Language Grammar for JavaCUP
+// Builds AST nodes directly
+
+package parser;
+import java_cup.runtime.*;
+import ast.*;
+
+parser code {:
+    private ast.S parseResult = null;
+    
+    public ast.S getAST() {
+        return parseResult;
+    }
+    
+    @Override
+    public java_cup.runtime.Symbol parse() throws java.lang.Exception {
+        java_cup.runtime.Symbol result = super.parse();
+        if (result != null && result.value instanceof ast.S) {
+            parseResult = (ast.S) result.value;
+        }
+        return result;
+    }
+:};
+
+terminal BEGIN, END, IF, THEN, ELSE, FI, WHILE, DO, DONE;
+terminal INPUTEXPR, SINKEXPR;
+terminal PLUS, MINUS, TIMES, DIV, MOD, EQ, NE, LT, GT, LE, GE, ASSIGN, SEMI, LPAREN, RPAREN;
+terminal Integer NUM;
+terminal String ID;
+
+non terminal ast.S program;
+non terminal ast.Stmt stmt_list, stmt;
+non terminal ast.Expr expr;
+non terminal Object opt_semi;
+
+precedence left EQ, NE;
+precedence left LT, GT, LE, GE;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, MOD;
+
+program ::= BEGIN stmt_list:body END
+    {: 
+        RESULT = new S(body);
+    :};
+
+stmt_list ::= stmt:s
+    {: 
+        RESULT = s;
+    :}
+    | stmt_list:sl stmt:s
+    {: 
+        if (sl instanceof Seq) {
+            ((Seq)sl).add(s);
+            RESULT = sl;
+        } else {
+            Seq seq = new Seq();
+            seq.add(sl);
+            seq.add(s);
+            RESULT = seq;
+        }
+    :};
+
+stmt ::= ID:id ASSIGN expr:e opt_semi
+    {: 
+        Assign assign = new Assign((String)id, e);
+        // Get line number from the ID token - CUP generates idleft automatically
+        assign.lineNumber = idleft;
+        RESULT = assign;
+    :}
+    | SINKEXPR:sink LPAREN expr:e RPAREN opt_semi
+    {: 
+        SinkExpr sinkExpr = new SinkExpr(e);
+        // Get line number from SINKEXPR token - CUP generates sinkleft automatically
+        sinkExpr.lineNumber = sinkleft;
+        Assign assign = new Assign("_sink", sinkExpr);
+        assign.lineNumber = sinkExpr.lineNumber;
+        RESULT = assign;
+    :}
+    | IF expr:c THEN stmt_list:th ELSE stmt_list:el FI
+    {: 
+        RESULT = new If(c, th, el);
+    :}
+    | IF expr:c THEN stmt_list:th FI
+    {: 
+        // If without else - create empty else branch
+        Seq emptyElse = new Seq();
+        RESULT = new If(c, th, emptyElse);
+    :}
+    | WHILE expr:c DO stmt_list:b DONE
+    {: 
+        RESULT = new While(c, b);
+    :};
+
+expr ::= expr:l PLUS expr:r
+    {: 
+        RESULT = new BinExpr(l, "+", r);
+    :}
+    | expr:l MINUS expr:r
+    {: 
+        RESULT = new BinExpr(l, "-", r);
+    :}
+    | expr:l TIMES expr:r
+    {: 
+        RESULT = new BinExpr(l, "*", r);
+    :}
+    | expr:l DIV expr:r
+    {: 
+        RESULT = new BinExpr(l, "/", r);
+    :}
+    | expr:l MOD expr:r
+    {: 
+        RESULT = new BinExpr(l, "%", r);
+    :}
+    | expr:l EQ expr:r
+    {: 
+        RESULT = new BinExpr(l, "==", r);
+    :}
+    | expr:l NE expr:r
+    {: 
+        RESULT = new BinExpr(l, "!=", r);
+    :}
+    | expr:l LT expr:r
+    {: 
+        RESULT = new BinExpr(l, "<", r);
+    :}
+    | expr:l GT expr:r
+    {: 
+        RESULT = new BinExpr(l, ">", r);
+    :}
+    | expr:l LE expr:r
+    {: 
+        RESULT = new BinExpr(l, "<=", r);
+    :}
+    | expr:l GE expr:r
+    {: 
+        RESULT = new BinExpr(l, ">=", r);
+    :}
+    | INPUTEXPR LPAREN RPAREN
+    {: 
+        RESULT = new InputExpr();
+    :}
+    | SINKEXPR:sink LPAREN expr:e RPAREN
+    {: 
+        SinkExpr sinkExpr = new SinkExpr(e);
+        // Get line number from SINKEXPR token - CUP generates sinkleft automatically
+        sinkExpr.lineNumber = sinkleft;
+        RESULT = sinkExpr;
+    :}
+    | ID:id
+    {: 
+        RESULT = new Id((String)id);
+    :}
+    | NUM:n
+    {: 
+        RESULT = new Num((Integer)n);
+    :}
+    | LPAREN expr:e RPAREN
+    {: 
+        RESULT = e;
+    :};
+
+opt_semi ::= SEMI
+    {: 
+        RESULT = null;
+    :}
+    | 
+    {: 
+        RESULT = null;
+    :};
+

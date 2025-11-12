@@ -1,0 +1,38 @@
+# Compiled class files
+bin/
+*.class
+
+# Generated parser/lexer files (from JFlex and CUP)
+src/parser/TaintLexer.java
+src/parser/TaintParser.java
+src/parser/sym.java
+
+# Backup files created by JFlex
+*.java~
+
+# Generated graph files
+*.dot
+*.png
+*.svg
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build artifacts
+*.jar
+*.war
+*.ear
+
+# Log files
+*.log
+
