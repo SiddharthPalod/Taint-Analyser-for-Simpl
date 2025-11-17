@@ -66,25 +66,36 @@ public class TaintAnalyzer {
      * Compute IN state by joining all predecessor OUT states
      */
     protected AnalysisState computeInState(BasicBlock block) {
+        return computeInStateFromOutStates(block, OUT);
+    }
+
+    /**
+     * Helper to compute the IN state using an arbitrary map of predecessor OUT states.
+     * This allows alternative solvers (e.g., brute-force) to reuse the same join logic.
+     */
+    protected AnalysisState computeInStateFromOutStates(
+            BasicBlock block,
+            Map<BasicBlock, AnalysisState> outStates) {
         List<BasicBlock> predecessors = block.getPredecessors();
-        
+
         if (predecessors.isEmpty()) {
-            // Entry block - start with bottom state
             return AnalysisState.getBottomState(allVars);
         }
-        
-        // Join all predecessor OUT states
-        AnalysisState result = OUT.get(predecessors.get(0));
+
+        AnalysisState result = outStates.get(predecessors.get(0));
         for (int i = 1; i < predecessors.size(); i++) {
-            result = result.join(OUT.get(predecessors.get(i)));
+            BasicBlock pred = predecessors.get(i);
+            AnalysisState predOut = outStates.get(pred);
+            if (predOut == null) {
+                continue;
+            }
+            result = result.join(predOut);
         }
-        
-        // If this is a merge block (multiple predecessors), clear control taint
-        // because we're exiting the conditional context
+
         if (predecessors.size() > 1) {
             result = result.clearControlOrigins();
         }
-        
+
         return result;
     }
     

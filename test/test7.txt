@@ -7,5 +7,6 @@ if x > 0 then
  fi
  z = 5
 fi
+sinkExpr(y)
 sinkExpr(z)
 end

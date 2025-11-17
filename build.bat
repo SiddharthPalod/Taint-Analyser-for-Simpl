@@ -59,7 +59,13 @@ powershell -Command "$content = Get-Content src\parser\sym.java -Raw; $newConten
 if not exist bin mkdir bin
 
 echo Compiling source files...
-javac -d bin -sourcepath src -cp "%CUP_JAR%" src\Main.java src\ast\*.java src\cfg\*.java src\parser\*.java src\analysis\*.java
+javac -d bin -sourcepath src -cp "%CUP_JAR%" ^
+    src\Main.java ^
+    src\BenchmarkRunner.java ^
+    src\ast\*.java ^
+    src\cfg\*.java ^
+    src\parser\*.java ^
+    src\analysis\*.java
 
 if %ERRORLEVEL% EQU 0 (
     echo Build successful!

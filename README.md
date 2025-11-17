@@ -9,6 +9,7 @@ A static taint analysis tool implementing the Kildall worklist algorithm for dat
 - **Basic Block CFG**: Converts AST to Control Flow Graph with normalized statements (three-address code)
 - **Kildall Worklist Algorithm**: Efficient fixed-point solver for data-flow analysis
 - **Post-Dominator Optimization**: Optional optimization to reduce false positives by resetting control taint at merge points
+- **Brute-Force Fixed Point**: Reference solver that iterates the entire CFG each round
 - **JFlex/CUP Parser**: Uses JFlex for lexing and CUP for parsing (as specified in the architecture)
 
 ## Prerequisites
@@ -47,6 +48,11 @@ The build script will:
 java -cp "bin;CUP_JAR" Main test/test1_explicit_flow.txt
 ```
 
+### Brute-Force Fixed-Point Analysis
+```bash
+java -cp "bin;CUP_JAR" Main test/test1_explicit_flow.txt --brute
+```
+
 ### Optimized Analysis (with Post-Dominators)
 ```bash
 java -cp "bin;CUP_JAR" Main test/test1_explicit_flow.txt --optimized
@@ -54,7 +60,20 @@ java -cp "bin;CUP_JAR" Main test/test1_explicit_flow.txt --optimized
 
 **Windows:**
 ```cmd
-java -cp "bin;%CUP_JAR%" Main test\test1_explicit_flow.txt
+java -cp "bin;%CUP_JAR%" Main test\test1_explicit_flow.txt --brute
+```
+
+### Benchmarking All Modes
+Run the benchmark harness to compare basic, brute-force, and optimized analyzers across every `.txt` file in a directory (defaults to `test`) and export the timings to a CSV file (defaults to `benchmark_results.csv`):
+
+```bash
+java -cp "bin;CUP_JAR" BenchmarkRunner [testsDir] [outputCsv]
+```
+
+Example (Windows):
+
+```cmd
+java -cp "bin;%CUP_JAR%" BenchmarkRunner test benchmark_results.csv
 ```
 
 ## Test Cases

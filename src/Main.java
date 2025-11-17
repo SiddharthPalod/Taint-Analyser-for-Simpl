@@ -12,11 +12,18 @@ import java_cup.runtime.*;
 public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
-            System.err.println("Usage: java Main <sourcefile> [--optimized]");
+            System.err.println("Usage: java Main <sourcefile> [--optimized|--brute]");
             System.exit(1);
         }
         
-        boolean optimized = args.length > 1 && args[1].equals("--optimized");
+        String mode = args.length > 1 ? args[1] : "--basic";
+        boolean optimized = "--optimized".equals(mode);
+        boolean bruteForce = "--brute".equals(mode);
+        if (!(optimized || bruteForce || "--basic".equals(mode))) {
+            System.err.println("Unknown option: " + mode);
+            System.err.println("Usage: java Main <sourcefile> [--optimized|--brute]");
+            System.exit(1);
+        }
         
         // Read input file
         String input = readFile(args[0]);
@@ -69,6 +76,9 @@ public class Main {
         if (optimized) {
             System.out.println("\n=== RUNNING OPTIMIZED ANALYSIS (with Post-Dominators) ===");
             analyzer = new OptimizedTaintAnalyzer(cfg, allVars);
+        } else if (bruteForce) {
+            System.out.println("\n=== RUNNING BRUTE-FORCE ANALYSIS ===");
+            analyzer = new BruteForceTaintAnalyzer(cfg, allVars);
         } else {
             System.out.println("\n=== RUNNING BASIC ANALYSIS ===");
             analyzer = new TaintAnalyzer(cfg, allVars);
