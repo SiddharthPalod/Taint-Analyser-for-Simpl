@@ -48,6 +48,14 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
+REM Add package declaration to generated TaintParser.java
+echo Adding package declaration to TaintParser.java...
+powershell -Command "$content = Get-Content src\parser\TaintParser.java -Raw; $newContent = 'package parser;' + [Environment]::NewLine + [Environment]::NewLine + $content; Set-Content src\parser\TaintParser.java -Value $newContent -NoNewline"
+
+REM Add package declaration to generated sym.java
+echo Adding package declaration to sym.java...
+powershell -Command "$content = Get-Content src\parser\sym.java -Raw; $newContent = 'package parser;' + [Environment]::NewLine + [Environment]::NewLine + $content; Set-Content src\parser\sym.java -Value $newContent -NoNewline"
+
 if not exist bin mkdir bin
 
 echo Compiling source files...
@@ -55,7 +63,7 @@ javac -d bin -sourcepath src -cp "%CUP_JAR%" src\Main.java src\ast\*.java src\cf
 
 if %ERRORLEVEL% EQU 0 (
     echo Build successful!
-    echo Run with: java -cp "bin;%CUP_JAR%" Main test\test1_explicit_flow.txt
+    echo Run with: java -cp "bin;%CUP_JAR%" Main test\test1.txt
 ) else (
     echo Build failed!
     exit /b 1

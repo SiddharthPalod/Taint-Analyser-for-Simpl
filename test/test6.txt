@@ -1,0 +1,15 @@
+begin
+x = inputExpr()
+if x > 0 then
+  z = 10
+else
+  z = 20
+fi
+k = 5
+if k > 0 then
+  m = 10
+else
+  m = 20
+fi
+sinkExpr(m)
+end

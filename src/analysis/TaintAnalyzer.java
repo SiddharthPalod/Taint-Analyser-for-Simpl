@@ -8,10 +8,10 @@ import java.util.*;
  * Implements the fixed-point solver for data-flow analysis
  */
 public class TaintAnalyzer {
-    private final cfg.CFGBuilder.CFGResult cfg;
-    private final Map<BasicBlock, AnalysisState> IN;
-    private final Map<BasicBlock, AnalysisState> OUT;
-    private final Set<String> allVars;
+    protected final cfg.CFGBuilder.CFGResult cfg;
+    protected final Map<BasicBlock, AnalysisState> IN;
+    protected final Map<BasicBlock, AnalysisState> OUT;
+    protected final Set<String> allVars;
     
     public TaintAnalyzer(cfg.CFGBuilder.CFGResult cfg, Set<String> allVars) {
         this.cfg = cfg;
@@ -65,7 +65,7 @@ public class TaintAnalyzer {
     /**
      * Compute IN state by joining all predecessor OUT states
      */
-    private AnalysisState computeInState(BasicBlock block) {
+    protected AnalysisState computeInState(BasicBlock block) {
         List<BasicBlock> predecessors = block.getPredecessors();
         
         if (predecessors.isEmpty()) {
@@ -82,7 +82,7 @@ public class TaintAnalyzer {
         // If this is a merge block (multiple predecessors), clear control taint
         // because we're exiting the conditional context
         if (predecessors.size() > 1) {
-            result = result.setControlTaint(AnalysisState.TaintState.NT);
+            result = result.clearControlOrigins();
         }
         
         return result;
@@ -92,11 +92,11 @@ public class TaintAnalyzer {
      * Transfer Function F_n: IN[n] -> OUT[n]
      * Implements the core taint propagation logic including implicit flow
      */
-    private AnalysisState transferFunction(BasicBlock block, AnalysisState inState) {
+    protected AnalysisState transferFunction(BasicBlock block, AnalysisState inState) {
         AnalysisState state = inState;
         
         for (BasicBlock.Statement stmt : block.statements) {
-            state = applyStatement(stmt, state);
+            state = applyStatement(block, stmt, state);
         }
         
         return state;
@@ -105,7 +105,7 @@ public class TaintAnalyzer {
     /**
      * Apply a single statement to the analysis state
      */
-    private AnalysisState applyStatement(BasicBlock.Statement stmt, AnalysisState state) {
+    protected AnalysisState applyStatement(BasicBlock block, BasicBlock.Statement stmt, AnalysisState state) {
         switch (stmt.type) {
             case ASSIGN_INPUT:
                 // x = inputExpr() -> x becomes T (tainted)
@@ -116,7 +116,7 @@ public class TaintAnalyzer {
                 AnalysisState.TaintState yTaint = state.getVarTaint(stmt.rightVar);
                 // Implicit flow: if control is tainted, assignment is tainted
                 AnalysisState.TaintState finalTaint = (yTaint == AnalysisState.TaintState.T || 
-                                                       state.controlTaint == AnalysisState.TaintState.T)
+                                                       state.isControlTainted())
                     ? AnalysisState.TaintState.T : AnalysisState.TaintState.NT;
                 return state.setVarTaint(stmt.var, finalTaint);
                 
@@ -126,7 +126,7 @@ public class TaintAnalyzer {
                 AnalysisState.TaintState rightTaint = state.getVarTaint(stmt.rightVar);
                 AnalysisState.TaintState binTaint = (leftTaint == AnalysisState.TaintState.T || 
                                                      rightTaint == AnalysisState.TaintState.T ||
-                                                     state.controlTaint == AnalysisState.TaintState.T)
+                                                     state.isControlTainted())
                     ? AnalysisState.TaintState.T : AnalysisState.TaintState.NT;
                 return state.setVarTaint(stmt.var, binTaint);
                 
@@ -137,8 +137,7 @@ public class TaintAnalyzer {
                 if (condVar != null) {
                     AnalysisState.TaintState condVarTaint = state.getVarTaint(condVar);
                     if (condVarTaint == AnalysisState.TaintState.T) {
-                        // Control becomes tainted
-                        state = state.setControlTaint(AnalysisState.TaintState.T);
+                        state = state.addControlOrigin(block);
                     }
                 }
                 return state;
@@ -157,7 +156,7 @@ public class TaintAnalyzer {
      * Extract variable name from condition expression
      * Simplified: assumes conditions are comparisons with variables
      */
-    private String extractConditionVar(Object condition) {
+    protected String extractConditionVar(Object condition) {
         if (condition == null) return null;
         // This is a simplified version - in practice, you'd need to handle
         // complex conditions. For now, we'll check if it's a binary expression
@@ -206,7 +205,7 @@ public class TaintAnalyzer {
                     }
                 } else {
                     // Apply statement to get state for next SINK check
-                    currentState = applyStatement(stmt, currentState);
+                    currentState = applyStatement(block, stmt, currentState);
                 }
             }
         }

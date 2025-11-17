@@ -1,7 +1,6 @@
 // Taint Analysis Language Grammar for JavaCUP
 // Builds AST nodes directly
 
-package parser;
 import java_cup.runtime.*;
 import ast.*;
 
@@ -82,7 +81,6 @@ stmt ::= ID:id ASSIGN expr:e opt_semi
     :}
     | IF expr:c THEN stmt_list:th FI
     {: 
-        // If without else - create empty else branch
         Seq emptyElse = new Seq();
         RESULT = new If(c, th, emptyElse);
     :}
