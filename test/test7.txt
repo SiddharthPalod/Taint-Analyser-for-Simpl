@@ -1,6 +1,7 @@
 begin
 x = inputExpr()
 c = 5
+z = 0
 if x > 0 then
  if c==5 then
     y = 3
