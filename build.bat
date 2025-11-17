@@ -36,10 +36,6 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-REM Add package declaration and imports to generated TaintLexer.java
-echo Adding package and imports to TaintLexer.java...
-powershell -Command "$content = Get-Content src\parser\TaintLexer.java -Raw; $newContent = 'package parser;' + [Environment]::NewLine + [Environment]::NewLine + 'import java_cup.runtime.Symbol;' + [Environment]::NewLine + 'import ast.*;' + [Environment]::NewLine + [Environment]::NewLine + $content; Set-Content src\parser\TaintLexer.java -Value $newContent -NoNewline"
-
 echo Step 2: Generating parser from taint.cup...
 java -jar "%CUP_JAR%" -parser TaintParser -symbols sym -destdir src\parser src\parser\taint.cup
 if %errorlevel% neq 0 (
@@ -47,14 +43,6 @@ if %errorlevel% neq 0 (
     pause
     exit /b %errorlevel%
 )
-
-REM Add package declaration to generated TaintParser.java
-echo Adding package declaration to TaintParser.java...
-powershell -Command "$content = Get-Content src\parser\TaintParser.java -Raw; $newContent = 'package parser;' + [Environment]::NewLine + [Environment]::NewLine + $content; Set-Content src\parser\TaintParser.java -Value $newContent -NoNewline"
-
-REM Add package declaration to generated sym.java
-echo Adding package declaration to sym.java...
-powershell -Command "$content = Get-Content src\parser\sym.java -Raw; $newContent = 'package parser;' + [Environment]::NewLine + [Environment]::NewLine + $content; Set-Content src\parser\sym.java -Value $newContent -NoNewline"
 
 if not exist bin mkdir bin
 

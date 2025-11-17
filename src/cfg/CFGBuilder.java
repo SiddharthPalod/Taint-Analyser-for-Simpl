@@ -60,8 +60,34 @@ public class CFGBuilder {
             Seq seq = (Seq) stmt;
             BasicBlock first = null, last = null;
             
-            for (Stmt s : seq.stmts) {
-                BuildResult br = buildStmt(s, allBlocks);
+            int i = 0;
+            while (i < seq.stmts.size()) {
+                Stmt current = seq.stmts.get(i);
+                BuildResult br;
+                
+                if (current instanceof Assign) {
+                    BasicBlock block = new BasicBlock();
+                    allBlocks.add(block);
+                    
+                    // Collapse consecutive assignments into this block
+                    while (i < seq.stmts.size() && seq.stmts.get(i) instanceof Assign) {
+                        Assign assignStmt = (Assign) seq.stmts.get(i);
+                        List<BasicBlock.Statement> normalized = normalizeAssignment(
+                            assignStmt.var,
+                            assignStmt.expr,
+                            assignStmt.lineNumber
+                        );
+                        for (BasicBlock.Statement normalizedStmt : normalized) {
+                            block.addStatement(normalizedStmt);
+                        }
+                        i++;
+                    }
+                    br = new BuildResult(block, block);
+                } else {
+                    br = buildStmt(current, allBlocks);
+                    i++;
+                }
+                
                 if (first == null) first = br.start;
                 if (last != null) last.addSuccessor(br.start);
                 last = br.end;

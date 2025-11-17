@@ -51,6 +51,9 @@ public class BenchmarkRunner {
         }
         Arrays.sort(testFiles);
 
+        System.out.println("Performing JVM warm-up using " + testFiles[0].getName());
+        warmUpAnalyzers(prepareBenchmarkInput(testFiles[0]));
+
         List<BenchmarkResult> results = new ArrayList<>();
         for (File testFile : testFiles) {
             BenchmarkInput input = prepareBenchmarkInput(testFile);
@@ -86,6 +89,20 @@ public class BenchmarkRunner {
         int leakCount = analyzer.reportLeaks().size();
         double durationMs = durationNs / 1_000_000.0;
         return new BenchmarkResult(testName, mode, durationMs, leakCount);
+    }
+
+    private static void warmUpAnalyzers(BenchmarkInput input) {
+        List<Supplier<TaintAnalyzer>> analyzers = Arrays.asList(
+                () -> new TaintAnalyzer(input.cfg, input.allVars),
+                () -> new BruteForceTaintAnalyzer(input.cfg, input.allVars),
+                () -> new OptimizedTaintAnalyzer(input.cfg, input.allVars)
+        );
+        for (Supplier<TaintAnalyzer> supplier : analyzers) {
+            TaintAnalyzer analyzer = supplier.get();
+            analyzer.analyze();
+            analyzer.reportLeaks();
+        }
+        System.out.println("Warm-up completed for " + input.testName);
     }
 
     private static void printResults(List<BenchmarkResult> results) {
