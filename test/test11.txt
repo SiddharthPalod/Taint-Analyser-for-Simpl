@@ -1,0 +1,16 @@
+begin
+flag = inputExpr()
+count = 0
+i = 0
+while i < 3 do
+  if flag > 0 then
+    count = count + i
+  else
+    count = count + 1
+  fi
+  i = i + 1
+done
+sinkExpr(count)
+end
+
+

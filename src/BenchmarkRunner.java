@@ -49,7 +49,14 @@ public class BenchmarkRunner {
             System.err.println("No .txt test files found in " + dir.getAbsolutePath());
             System.exit(1);
         }
-        Arrays.sort(testFiles);
+        Arrays.sort(testFiles, (f1, f2) -> {
+            int n1 = extractTestNumber(f1.getName());
+            int n2 = extractTestNumber(f2.getName());
+            if (n1 != n2) {
+                return Integer.compare(n1, n2);
+            }
+            return f1.getName().compareTo(f2.getName());
+        });
 
         System.out.println("Performing JVM warm-up using " + testFiles[0].getName());
         warmUpAnalyzers(prepareBenchmarkInput(testFiles[0]));
@@ -103,6 +110,30 @@ public class BenchmarkRunner {
             analyzer.reportLeaks();
         }
         System.out.println("Warm-up completed for " + input.testName);
+    }
+
+    private static int extractTestNumber(String fileName) {
+        String base = fileName;
+        int dotIdx = fileName.indexOf('.');
+        if (dotIdx >= 0) {
+            base = fileName.substring(0, dotIdx);
+        }
+        int lastDigitsStart = -1;
+        for (int i = base.length() - 1; i >= 0; i--) {
+            if (Character.isDigit(base.charAt(i))) {
+                lastDigitsStart = i;
+            } else {
+                break;
+            }
+        }
+        if (lastDigitsStart == -1) {
+            return Integer.MAX_VALUE;
+        }
+        try {
+            return Integer.parseInt(base.substring(lastDigitsStart));
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
     }
 
     private static void printResults(List<BenchmarkResult> results) {
