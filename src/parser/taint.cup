@@ -1,6 +1,6 @@
 // Taint Analysis Language Grammar for JavaCUP
 // Builds AST nodes directly
-
+package parser;
 import java_cup.runtime.*;
 import ast.*;
 

@@ -1,3 +1,4 @@
+package parser;
 %%
 %class TaintLexer
 %unicode
