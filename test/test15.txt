@@ -1,0 +1,13 @@
+begin
+secret = inputExpr()
+i = 0
+z = 0
+while i < 5 do
+  if secret > i then
+    z = z + 2
+  else
+    z = z - 1
+  fi
+done
+sinkExpr(z)
+end
