@@ -12,16 +12,34 @@ import java_cup.runtime.*;
 public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
-            System.err.println("Usage: java Main <sourcefile> [--optimized|--brute]");
+            System.err.println("Usage: java Main <sourcefile> [--optimized [--dfs]|--brute]");
             System.exit(1);
         }
         
         String mode = args.length > 1 ? args[1] : "--basic";
         boolean optimized = "--optimized".equals(mode);
         boolean bruteForce = "--brute".equals(mode);
-        if (!(optimized || bruteForce || "--basic".equals(mode))) {
+        boolean basic = "--basic".equals(mode);
+        if (!(optimized || bruteForce || basic)) {
             System.err.println("Unknown option: " + mode);
-            System.err.println("Usage: java Main <sourcefile> [--optimized|--brute]");
+            System.err.println("Usage: java Main <sourcefile> [--optimized [--dfs]|--brute]");
+            System.exit(1);
+        }
+
+        boolean dfsOptimized = false;
+        if (optimized) {
+            if (args.length > 2) {
+                if ("--dfs".equals(args[2])) {
+                    dfsOptimized = true;
+                } else {
+                    System.err.println("Unknown option for optimized mode: " + args[2]);
+                    System.err.println("Usage: java Main <sourcefile> [--optimized [--dfs]|--brute]");
+                    System.exit(1);
+                }
+            }
+        } else if (args.length > 2) {
+            System.err.println("Unexpected extra arguments.");
+            System.err.println("Usage: java Main <sourcefile> [--optimized [--dfs]|--brute]");
             System.exit(1);
         }
         
@@ -74,8 +92,13 @@ public class Main {
         // Run analysis
         TaintAnalyzer analyzer;
         if (optimized) {
-            System.out.println("\n=== RUNNING OPTIMIZED ANALYSIS (with Post-Dominators) ===");
-            analyzer = new OptimizedTaintAnalyzer(cfg, allVars);
+            if (dfsOptimized) {
+                System.out.println("\n=== RUNNING OPTIMIZED ANALYSIS (DFS Post-Dominator Tree) ===");
+                analyzer = new OptimizedDfsTaintAnalyzer(cfg, allVars);
+            } else {
+                System.out.println("\n=== RUNNING OPTIMIZED ANALYSIS (with Post-Dominators) ===");
+                analyzer = new OptimizedTaintAnalyzer(cfg, allVars);
+            }
         } else if (bruteForce) {
             System.out.println("\n=== RUNNING BRUTE-FORCE ANALYSIS ===");
             analyzer = new BruteForceTaintAnalyzer(cfg, allVars);

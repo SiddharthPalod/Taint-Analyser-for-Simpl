@@ -1,4 +1,5 @@
 import analysis.BruteForceTaintAnalyzer;
+import analysis.OptimizedDfsTaintAnalyzer;
 import analysis.OptimizedTaintAnalyzer;
 import analysis.TaintAnalyzer;
 import ast.*;
@@ -72,6 +73,8 @@ public class BenchmarkRunner {
                     () -> new BruteForceTaintAnalyzer(input.cfg, input.allVars)));
             results.add(runAnalyzer(testFile.getName(), "optimized",
                     () -> new OptimizedTaintAnalyzer(input.cfg, input.allVars)));
+            results.add(runAnalyzer(testFile.getName(), "optimized_dfs",
+                    () -> new OptimizedDfsTaintAnalyzer(input.cfg, input.allVars)));
         }
 
         printResults(results);
@@ -102,7 +105,8 @@ public class BenchmarkRunner {
         List<Supplier<TaintAnalyzer>> analyzers = Arrays.asList(
                 () -> new TaintAnalyzer(input.cfg, input.allVars),
                 () -> new BruteForceTaintAnalyzer(input.cfg, input.allVars),
-                () -> new OptimizedTaintAnalyzer(input.cfg, input.allVars)
+                () -> new OptimizedTaintAnalyzer(input.cfg, input.allVars),
+                () -> new OptimizedDfsTaintAnalyzer(input.cfg, input.allVars)
         );
         for (Supplier<TaintAnalyzer> supplier : analyzers) {
             TaintAnalyzer analyzer = supplier.get();

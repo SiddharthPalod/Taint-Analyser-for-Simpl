@@ -2,22 +2,22 @@ package analysis;
 
 import cfg.BasicBlock;
 import cfg.CFGBuilder;
-import pdt.PostDominatorTree;
+import pdt.BackpropPostDominatorTree;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Optimized Taint Analyzer that leverages the Post-Dominator Tree
- * to reset control taint exactly where control scopes merge.
+ * Variant of the optimized taint analyzer that relies on the DFS/back-propagation
+ * post-dominator tree builder to reset control-taint exactly at merge points.
  */
-public class OptimizedTaintAnalyzer extends TaintAnalyzer {
-    private final PostDominatorTree postDominatorTree;
+public class OptimizedDfsTaintAnalyzer extends TaintAnalyzer {
+    private final BackpropPostDominatorTree postDominatorTree;
 
-    public OptimizedTaintAnalyzer(CFGBuilder.CFGResult cfg, Set<String> allVars) {
+    public OptimizedDfsTaintAnalyzer(CFGBuilder.CFGResult cfg, Set<String> allVars) {
         super(cfg, allVars);
-        this.postDominatorTree = new PostDominatorTree(cfg);
+        this.postDominatorTree = new BackpropPostDominatorTree(cfg);
     }
 
     @Override

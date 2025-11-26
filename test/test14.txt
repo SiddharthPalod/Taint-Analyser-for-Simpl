@@ -1,0 +1,9 @@
+begin
+x = inputExpr()
+if x > 0 then
+  z = 10
+else
+  z = 10
+fi
+sinkExpr(z)
+end
