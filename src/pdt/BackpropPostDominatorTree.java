@@ -80,38 +80,6 @@ public class BackpropPostDominatorTree {
     }
 
     /**
-     * Computes the least common ancestor of {@code a} and {@code b} in the PDT.
-     * Returns {@code null} if either block is not dominated by the exit.
-     */
-    public BasicBlock lca(BasicBlock a, BasicBlock b) {
-        Integer ia = indexOf.get(a);
-        Integer ib = indexOf.get(b);
-        if (ia == null || ib == null || depth[ia] < 0 || depth[ib] < 0) {
-            return null;
-        }
-        int u = ia;
-        int v = ib;
-        if (depth[u] < depth[v]) {
-            v = lift(v, depth[v] - depth[u]);
-        } else if (depth[v] < depth[u]) {
-            u = lift(u, depth[u] - depth[v]);
-        }
-        if (u == v) {
-            return blocks.get(u);
-        }
-        for (int k = log - 1; k >= 0; k--) {
-            int upU = up[u][k];
-            int upV = up[v][k];
-            if (upU != -1 && upV != -1 && upU != upV) {
-                u = upU;
-                v = upV;
-            }
-        }
-        int ancestor = up[u][0];
-        return ancestor == -1 ? null : blocks.get(ancestor);
-    }
-
-    /**
      * Returns true if {@code candidate} post-dominates {@code block}.
      */
     public boolean postDominates(BasicBlock candidate, BasicBlock block) {
